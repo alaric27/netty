@@ -268,17 +268,22 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     /**
+     * 绑定SocketAddress
      * Create a new {@link Channel} and bind it.
      */
     public ChannelFuture bind(SocketAddress localAddress) {
+        // 校验相关配置非空
         validate();
         if (localAddress == null) {
             throw new NullPointerException("localAddress");
         }
+        // 具体的绑定逻辑
         return doBind(localAddress);
     }
 
     private ChannelFuture doBind(final SocketAddress localAddress) {
+
+        // 初始化并注册Channel
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
@@ -287,11 +292,13 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
 
         if (regFuture.isDone()) {
             // At this point we know that the registration was complete and successful.
+            // 如果已经注册完成，则进行端口绑定
             ChannelPromise promise = channel.newPromise();
             doBind0(regFuture, channel, localAddress, promise);
             return promise;
         } else {
             // Registration future is almost always fulfilled already, but just in case it's not.
+            //如果注册逻辑没有完成，则注册监听器，完成后调用doBind0方法
             final PendingRegistrationPromise promise = new PendingRegistrationPromise(channel);
             regFuture.addListener(new ChannelFutureListener() {
                 @Override
@@ -318,6 +325,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         Channel channel = null;
         try {
             channel = channelFactory.newChannel();
+            // 初始化
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {
@@ -330,6 +338,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
 
+        // 注册
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {
