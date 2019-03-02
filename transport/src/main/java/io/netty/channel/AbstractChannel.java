@@ -477,6 +477,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 return;
             }
 
+            // 绑定 bossEventLoop
             AbstractChannel.this.eventLoop = eventLoop;
 
             //如果当前线程是EventLoop，则执行注册逻辑
@@ -517,7 +518,10 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
-                // 这里是调用在引导程序中设置的ChannelInitializer的initChannel方法
+
+
+                // 触发channel添加事件,会触发ChannelInitializer的initChannel方法，
+                // 如果在init添加ChannelHandler，又会触发ChannelHandler的handlerAdded方法。
                 pipeline.invokeHandlerAddedIfNeeded();
 
                 safeSetSuccess(promise);
@@ -576,6 +580,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 return;
             }
 
+            // 端口绑定成功后触发channel active事件，这个方法会调用到HeadContext的readIfIsAutoRead重新绑定Accept事件
             if (!wasActive && isActive()) {
                 invokeLater(new Runnable() {
                     @Override
@@ -584,7 +589,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                     }
                 });
             }
-            //回调通知promise
+
             safeSetSuccess(promise);
         }
 

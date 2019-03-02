@@ -95,6 +95,10 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     /**
+     *
+     * 设置channelFactory,在initAndRegister中会调用newChannel方法，创建channel对象
+     *
+     *
      * The {@link Class} which is used to create {@link Channel} instances from.
      * You either use this or {@link #channelFactory(io.netty.channel.ChannelFactory)} if your
      * {@link Channel} implementation has no no-args constructor.
@@ -321,9 +325,15 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         }
     }
 
+
+    /**
+     * 初始化并注册
+     * @return
+     */
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
+            // 创建服务端channel
             channel = channelFactory.newChannel();
             // 初始化
             init(channel);
@@ -368,6 +378,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
 
         // This method is invoked before channelRegistered() is triggered.  Give user handlers a chance to set up
         // the pipeline in its channelRegistered() implementation.
+
+        // 会启动EventLoop
         channel.eventLoop().execute(new Runnable() {
             @Override
             public void run() {

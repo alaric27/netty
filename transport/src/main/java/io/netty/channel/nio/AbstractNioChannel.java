@@ -81,10 +81,16 @@ public abstract class AbstractNioChannel extends AbstractChannel {
      * @param readInterestOp    the ops to set to receive data from the {@link SelectableChannel}
      */
     protected AbstractNioChannel(Channel parent, SelectableChannel ch, int readInterestOp) {
+
+        // 调用父类构造函数，创建id,unsafe,pipeline
         super(parent);
+        // 设置jdk 底层的channel
         this.ch = ch;
+
+        // 设置感兴趣的事件
         this.readInterestOp = readInterestOp;
         try {
+            // 配置为非阻塞模式
             ch.configureBlocking(false);
         } catch (IOException e) {
             try {
@@ -385,6 +391,9 @@ public abstract class AbstractNioChannel extends AbstractChannel {
             try {
                 //调用 #unwrappedSelector() 方法，返回 Java 原生 NIO Selector 对象
                 //调用 #javaChannel() 方法，获得 Java 原生 NIO 的 Channel 对象。
+                // 这里没有注册任何感兴趣的事件，其注册事件在fireChannelRegistered中触发的
+                // 第三个参数为attachment，netty用这个参数把ServerSocketChannel绑定到JDK Channel中，后面事件触发的时候
+                // 可以直接获取到ServerSocketChannel进行事件传播
                 selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
                 return;
             } catch (CancelledKeyException e) {

@@ -161,7 +161,11 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         super(parent);
         this.addTaskWakesUp = addTaskWakesUp;
         this.maxPendingTasks = Math.max(16, maxPendingTasks);
+
+        // 保存执行器
         this.executor = ObjectUtil.checkNotNull(executor, "executor");
+
+        // 外部的任务队列
         taskQueue = newTaskQueue(this.maxPendingTasks);
         rejectedExecutionHandler = ObjectUtil.checkNotNull(rejectedHandler, "rejectedHandler");
     }
@@ -902,6 +906,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
                 boolean success = false;
                 updateLastExecutionTime();
                 try {
+                    // 调用EventLoop的run方法启动EventLoop
                     SingleThreadEventExecutor.this.run();
                     success = true;
                 } catch (Throwable t) {

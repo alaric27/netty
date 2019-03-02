@@ -139,6 +139,9 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
 
     @Override
     void init(Channel channel) throws Exception {
+
+
+        // 设置channelOptions和channelAttr
         final Map<ChannelOption<?>, Object> options = options0();
         synchronized (options) {
             setChannelOptions(channel, options, logger);
@@ -159,6 +162,8 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         final ChannelHandler currentChildHandler = childHandler;
         final Entry<ChannelOption<?>, Object>[] currentChildOptions;
         final Entry<AttributeKey<?>, Object>[] currentChildAttrs;
+
+        // 设置childOptions和childAttrs，每次创建新连接的时候会自动为新channel添加这两个属性
         synchronized (childOptions) {
             currentChildOptions = childOptions.entrySet().toArray(newOptionArray(0));
         }
@@ -169,12 +174,15 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         p.addLast(new ChannelInitializer<Channel>() {
             @Override
             public void initChannel(final Channel ch) throws Exception {
+
+                // 添加服务端channel的handler，此Handler为服务端启动代码设置的
                 final ChannelPipeline pipeline = ch.pipeline();
                 ChannelHandler handler = config.handler();
                 if (handler != null) {
                     pipeline.addLast(handler);
                 }
 
+                // 添加特殊的ChannelHandler，用于处理新连接接入
                 ch.eventLoop().execute(new Runnable() {
                     @Override
                     public void run() {
