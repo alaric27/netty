@@ -82,6 +82,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     protected AbstractChannel(Channel parent) {
         this.parent = parent;
         id = newId();
+        // 根据不同的Channel会创建不同的Unsafe
+        // NioServerSocketChannel -> NioMessageUnsafe
+        // NioSocketChannel -> NioByteUnsafe
         unsafe = newUnsafe();
         pipeline = newChannelPipeline();
     }
@@ -529,6 +532,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 pipeline.fireChannelRegistered();
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
                 // multiple channel actives if the channel is deregistered and re-registered.
+
+                // 如果是服务端channel 此时该channel 还没有激活，会在绑定端口后触发激活事件
+                // 如果是客户端channel 此时已激活channel，会触发激活事件，激活事件中会注册感兴趣的read事件
                 if (isActive()) {
                     if (firstRegistration) {
                         pipeline.fireChannelActive();

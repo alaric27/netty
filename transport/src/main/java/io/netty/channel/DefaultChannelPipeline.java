@@ -1391,6 +1391,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             }
         }
 
+        /**
+         * 通道激活的时候会调用该方法
+         * @param ctx
+         */
         @Override
         public void channelActive(ChannelHandlerContext ctx) {
             ctx.fireChannelActive();
@@ -1415,6 +1419,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             readIfIsAutoRead();
         }
 
+        /**
+         * 如果是自动读，则会注册相应的事件
+         */
         private void readIfIsAutoRead() {
             if (channel.config().isAutoRead()) {
                 channel.read();
