@@ -16,6 +16,16 @@
 package io.netty.buffer;
 
 /**
+ * 内存分配器
+ *
+ * 如何决定分配什么类型？
+ *  1、根据子类决定分配池化还是非池化内存，
+ *    PooledByteBufAllocator：池化内存分配器，UnpooledByteBufAllocator:非池化内存分配器
+ *  2、根据具体的方法分配堆内存还是直接内存
+ *      heapBuffer():分配堆内存，directBuffer():分配直接内存
+ *  3、根据是否能拿到jdk底层的unsafe对象来决定分配unsafe类型
+ *      如果能拿到JDK底层Unsafe对象，则分配Unsafe否则分配非Unsafe内存
+ *
  * Implementations are responsible to allocate buffers. Implementations of this interface are expected to be
  * thread-safe.
  */
@@ -24,6 +34,7 @@ public interface ByteBufAllocator {
     ByteBufAllocator DEFAULT = ByteBufUtil.DEFAULT_ALLOCATOR;
 
     /**
+     * 分配内存，堆内存还是直接内存依赖具体的实现
      * Allocate a {@link ByteBuf}. If it is a direct or heap buffer
      * depends on the actual implementation.
      */
@@ -43,6 +54,7 @@ public interface ByteBufAllocator {
     ByteBuf buffer(int initialCapacity, int maxCapacity);
 
     /**
+     * 偏向于分配直接内存
      * Allocate a {@link ByteBuf}, preferably a direct buffer which is suitable for I/O.
      */
     ByteBuf ioBuffer();
@@ -58,6 +70,7 @@ public interface ByteBufAllocator {
     ByteBuf ioBuffer(int initialCapacity, int maxCapacity);
 
     /**
+     * 分配堆内存
      * Allocate a heap {@link ByteBuf}.
      */
     ByteBuf heapBuffer();
@@ -74,6 +87,7 @@ public interface ByteBufAllocator {
     ByteBuf heapBuffer(int initialCapacity, int maxCapacity);
 
     /**
+     * 分配直接内存
      * Allocate a direct {@link ByteBuf}.
      */
     ByteBuf directBuffer();
@@ -90,6 +104,8 @@ public interface ByteBufAllocator {
     ByteBuf directBuffer(int initialCapacity, int maxCapacity);
 
     /**
+     *
+     * 聚合ByteBuf,依赖具体实现来决定是堆内存还是直接内存
      * Allocate a {@link CompositeByteBuf}.
      * If it is a direct or heap buffer depends on the actual implementation.
      */

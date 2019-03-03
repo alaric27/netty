@@ -142,8 +142,17 @@ abstract class PoolArena<T> implements PoolArenaMetric {
 
     abstract boolean isDirect();
 
+    /**
+     * 分配内存
+     * @param cache
+     * @param reqCapacity
+     * @param maxCapacity
+     * @return
+     */
     PooledByteBuf<T> allocate(PoolThreadCache cache, int reqCapacity, int maxCapacity) {
+        // 获取PooledByteBuf对象
         PooledByteBuf<T> buf = newByteBuf(maxCapacity);
+        // 分配内存
         allocate(cache, buf, reqCapacity);
         return buf;
     }
@@ -219,6 +228,7 @@ abstract class PoolArena<T> implements PoolArenaMetric {
             return;
         }
         if (normCapacity <= chunkSize) {
+            // 现在缓存上进行内存分配，如果没有分配成功，则实际分配一段内存
             if (cache.allocateNormal(this, buf, reqCapacity, normCapacity)) {
                 // was able to allocate out of the cache so move on
                 return;

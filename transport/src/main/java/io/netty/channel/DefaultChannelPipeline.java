@@ -89,15 +89,26 @@ public class DefaultChannelPipeline implements ChannelPipeline {
      */
     private boolean registered;
 
+    /**
+     * pipeline的初始化
+     * @param channel
+     */
     protected DefaultChannelPipeline(Channel channel) {
+
+        // 保存对应的channel
         this.channel = ObjectUtil.checkNotNull(channel, "channel");
         succeededFuture = new SucceededChannelFuture(channel, null);
         voidPromise =  new VoidChannelPromise(channel, true);
 
+        // 创建尾节点
         tail = new TailContext(this);
+        // 创建头节点
         head = new HeadContext(this);
 
+        // 设置头节点的下一个节点
         head.next = tail;
+
+        // 设置尾节点的前一个节点
         tail.prev = head;
     }
 
@@ -195,14 +206,21 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return addLast(null, name, handler);
     }
 
+
+    /**
+     * 向pipeline添加ChannelHandler
+     */
     @Override
     public final ChannelPipeline addLast(EventExecutorGroup group, String name, ChannelHandler handler) {
         final AbstractChannelHandlerContext newCtx;
         synchronized (this) {
+            //检查是否重复添加
             checkMultiplicity(handler);
 
+            // 构造ChannelHandlerContext
             newCtx = newContext(group, filterName(name, handler), handler);
 
+            //添加ChannelHandlerContext到pipeLine
             addLast0(newCtx);
 
             // If the registered is false it means that the channel was not registered on an eventLoop yet.
@@ -220,10 +238,15 @@ public class DefaultChannelPipeline implements ChannelPipeline {
                 return this;
             }
         }
+        //回调HandlerAdded0方法
         callHandlerAdded0(newCtx);
         return this;
     }
 
+    /**
+     * 添加ChannelHandlerContext到双向链表中
+     * @param newCtx
+     */
     private void addLast0(AbstractChannelHandlerContext newCtx) {
         AbstractChannelHandlerContext prev = tail.prev;
         newCtx.prev = prev;
@@ -593,6 +616,12 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         oldCtx.next = newCtx;
     }
 
+    /**
+     * 这里主要检查该handler是否重复添加，如果该handler是可共享的则可以重复添加，
+     * 如果该handler是不可共享的，只能添加一次，这样可以保证handler是线程安全的。可共享的一定是线程安全的，
+     * 没有线程安全问题，不可共享的只有一个线程调用该handler，也没有线程安全问题
+     * @param handler
+     */
     private static void checkMultiplicity(ChannelHandler handler) {
         if (handler instanceof ChannelHandlerAdapter) {
             ChannelHandlerAdapter h = (ChannelHandlerAdapter) handler;
@@ -1240,6 +1269,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     // A special catch-all handler that handles both bytes and messages.
+
+    /**
+     * 尾节点，主要做收尾的工作
+     */
     final class TailContext extends AbstractChannelHandlerContext implements ChannelInboundHandler {
 
         TailContext(DefaultChannelPipeline pipeline) {
@@ -1284,11 +1317,22 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             onUnhandledInboundUserEventTriggered(evt);
         }
 
+        /**
+         * 默认的异常处理,如果没有异常处理，会在这里打印异常
+         * @param ctx
+         * @param cause
+         */
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             onUnhandledInboundException(cause);
         }
 
+
+        /**
+         * 如果读事件没有对应的处理，会到这一步，打印报警
+         * @param ctx
+         * @param msg
+         */
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             onUnhandledInboundMessage(msg);
@@ -1300,6 +1344,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     }
 
+
+    /**
+     * 事件传播的起点
+     */
     final class HeadContext extends AbstractChannelHandlerContext
             implements ChannelOutboundHandler, ChannelInboundHandler {
 
@@ -1307,6 +1355,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         HeadContext(DefaultChannelPipeline pipeline) {
             super(pipeline, null, HEAD_NAME, true, true);
+            // 保存channel对应的unsafe
             unsafe = pipeline.channel().unsafe();
             setAddComplete();
         }

@@ -35,6 +35,9 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
+/**
+ * ChannelHandlerContext的抽象实现
+ */
 abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         implements ChannelHandlerContext, ResourceLeakHint {
 
@@ -85,6 +88,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         this.name = ObjectUtil.checkNotNull(name, "name");
         this.pipeline = pipeline;
         this.executor = executor;
+        // 标识是inbound或则outbound的Handler
         this.inbound = inbound;
         this.outbound = outbound;
         // Its ordered if its driven by the EventLoop or the given Executor is an instanceof OrderedEventExecutor.
@@ -358,6 +362,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
             try {
                 ((ChannelInboundHandler) handler()).channelRead(this, msg);
             } catch (Throwable t) {
+                // 异常传播
                 notifyHandlerException(t);
             }
         } else {

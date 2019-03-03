@@ -63,6 +63,7 @@ public class UnpooledUnsafeDirectByteBuf extends AbstractReferenceCountedByteBuf
         }
 
         this.alloc = alloc;
+        // 保存jdk底层的ByteBuffer
         setByteBuffer(allocateDirect(initialCapacity), false);
     }
 
@@ -112,6 +113,7 @@ public class UnpooledUnsafeDirectByteBuf extends AbstractReferenceCountedByteBuf
     }
 
     /**
+     * 调用jdk底层的allocateDirect方法分配直接内存
      * Allocate a new direct {@link ByteBuffer} with the given initialCapacity.
      */
     protected ByteBuffer allocateDirect(int initialCapacity) {
@@ -136,7 +138,9 @@ public class UnpooledUnsafeDirectByteBuf extends AbstractReferenceCountedByteBuf
                 }
             }
         }
+        // 保存ByteBuffer
         this.buffer = buffer;
+        // 保存ByteBuffer内存地址
         memoryAddress = PlatformDependent.directBufferAddress(buffer);
         tmpNioBuf = null;
         capacity = buffer.remaining();

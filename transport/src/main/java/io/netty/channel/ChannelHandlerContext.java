@@ -122,6 +122,10 @@ import java.nio.channels.Channels;
  * what fundamental differences they have, how they flow in a  pipeline,  and how to handle
  * the operation in your application.
  */
+
+/**
+ * pipeline节点的数据类型
+ */
 public interface ChannelHandlerContext extends AttributeMap, ChannelInboundInvoker, ChannelOutboundInvoker {
 
     /**
@@ -142,6 +146,7 @@ public interface ChannelHandlerContext extends AttributeMap, ChannelInboundInvok
     String name();
 
     /**
+     * 具体的处理器，会把ChannelHandler包装为ChannelHandlerContext，在pipeline中传播
      * The {@link ChannelHandler} that is bound this {@link ChannelHandlerContext}.
      */
     ChannelHandler handler();
@@ -192,6 +197,7 @@ public interface ChannelHandlerContext extends AttributeMap, ChannelInboundInvok
     ChannelPipeline pipeline();
 
     /**
+     * 内存分配器
      * Return the assigned {@link ByteBufAllocator} which will be used to allocate {@link ByteBuf}s.
      */
     ByteBufAllocator alloc();

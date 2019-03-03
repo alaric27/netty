@@ -58,7 +58,9 @@ public class UnpooledHeapByteBuf extends AbstractReferenceCountedByteBuf {
         }
 
         this.alloc = alloc;
+        // 创建一个初始长度数组
         setArray(allocateArray(initialCapacity));
+        // 把读写指针设置为0
         setIndex(0, 0);
     }
 

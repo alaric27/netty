@@ -62,6 +62,7 @@ public class UnpooledDirectByteBuf extends AbstractReferenceCountedByteBuf {
         }
 
         this.alloc = alloc;
+        // 保存jdk底层的ByteBuffer
         setByteBuffer(allocateDirect(initialCapacity));
     }
 
