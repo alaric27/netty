@@ -33,9 +33,9 @@ abstract class PoolArena<T> implements PoolArenaMetric {
     static final boolean HAS_UNSAFE = PlatformDependent.hasUnsafe();
 
     enum SizeClass {
-        Tiny,
-        Small,
-        Normal
+        Tiny,//0 - 512B
+        Small,//512B - 8K
+        Normal//8K - 16M
     }
 
     static final int numTinySubpagePools = 512 >>> 4;
@@ -157,6 +157,11 @@ abstract class PoolArena<T> implements PoolArenaMetric {
         return buf;
     }
 
+    /**
+     * 根据容量获取MemoryRegionCache数组中对应的索引
+     * @param normCapacity
+     * @return
+     */
     static int tinyIdx(int normCapacity) {
         return normCapacity >>> 4;
     }
@@ -181,6 +186,12 @@ abstract class PoolArena<T> implements PoolArenaMetric {
         return (normCapacity & 0xFFFFFE00) == 0;
     }
 
+    /**
+     * 内存分配
+     * @param cache
+     * @param buf
+     * @param reqCapacity
+     */
     private void allocate(PoolThreadCache cache, PooledByteBuf<T> buf, final int reqCapacity) {
         final int normCapacity = normalizeCapacity(reqCapacity);
         if (isTinyOrSmall(normCapacity)) { // capacity < pageSize
@@ -188,6 +199,7 @@ abstract class PoolArena<T> implements PoolArenaMetric {
             PoolSubpage<T>[] table;
             boolean tiny = isTiny(normCapacity);
             if (tiny) { // < 512
+                // 分配tiny类型的缓存
                 if (cache.allocateTiny(this, buf, reqCapacity, normCapacity)) {
                     // was able to allocate out of the cache so move on
                     return;
@@ -195,6 +207,7 @@ abstract class PoolArena<T> implements PoolArenaMetric {
                 tableIdx = tinyIdx(normCapacity);
                 table = tinySubpagePools;
             } else {
+                // 分配small类型的缓存
                 if (cache.allocateSmall(this, buf, reqCapacity, normCapacity)) {
                     // was able to allocate out of the cache so move on
                     return;
@@ -228,7 +241,7 @@ abstract class PoolArena<T> implements PoolArenaMetric {
             return;
         }
         if (normCapacity <= chunkSize) {
-            // 现在缓存上进行内存分配，如果没有分配成功，则实际分配一段内存
+            // 分配normal类型的缓存
             if (cache.allocateNormal(this, buf, reqCapacity, normCapacity)) {
                 // was able to allocate out of the cache so move on
                 return;

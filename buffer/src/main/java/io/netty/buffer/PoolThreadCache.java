@@ -48,11 +48,35 @@ final class PoolThreadCache {
     final PoolArena<ByteBuffer> directArena;
 
     // Hold the caches for the different size classes, which are tiny, small and normal.
+
+    /**
+     * tiny类型的堆内存数组
+     */
     private final MemoryRegionCache<byte[]>[] tinySubPageHeapCaches;
+
+    /**
+     * small类型的堆内存数组
+     */
     private final MemoryRegionCache<byte[]>[] smallSubPageHeapCaches;
+
+    /**
+     * tiny类型的直接内存数组
+     */
     private final MemoryRegionCache<ByteBuffer>[] tinySubPageDirectCaches;
+
+    /**
+     * small类型的直接内存数组
+     */
     private final MemoryRegionCache<ByteBuffer>[] smallSubPageDirectCaches;
+
+    /**
+     * normal 类型的堆内存数组
+     */
     private final MemoryRegionCache<byte[]>[] normalHeapCaches;
+
+    /**
+     * normal类型的直接内存数组
+     */
     private final MemoryRegionCache<ByteBuffer>[] normalDirectCaches;
 
     // Used for bitshifting when calculate the index of normal caches later
@@ -305,11 +329,18 @@ final class PoolThreadCache {
         cache.trim();
     }
 
+    /**
+     * 找到tiny类型对应的MemoryRegionCache
+     * @param area
+     * @param normCapacity
+     * @return
+     */
     private MemoryRegionCache<?> cacheForTiny(PoolArena<?> area, int normCapacity) {
         int idx = PoolArena.tinyIdx(normCapacity);
         if (area.isDirect()) {
             return cache(tinySubPageDirectCaches, idx);
         }
+        // 根据索引在数组中获取对应的MemoryRegionCache
         return cache(tinySubPageHeapCaches, idx);
     }
 
@@ -368,9 +399,22 @@ final class PoolThreadCache {
     }
 
     private abstract static class MemoryRegionCache<T> {
+        /**
+         * 队列长度
+         */
         private final int size;
+
+        /**
+         * 缓存的队列
+         */
         private final Queue<Entry<T>> queue;
+        /**
+         * 内存规格：Tiny,Small,Normal
+          */
         private final SizeClass sizeClass;
+        /**
+         * 分配次数
+         */
         private int allocations;
 
         MemoryRegionCache(int size, SizeClass sizeClass) {
@@ -404,11 +448,15 @@ final class PoolThreadCache {
          * Allocate something out of the cache if possible and remove the entry from the cache.
          */
         public final boolean allocate(PooledByteBuf<T> buf, int reqCapacity) {
+            // 获取一个entry
             Entry<T> entry = queue.poll();
             if (entry == null) {
                 return false;
             }
+            // 初始化
             initBuf(entry.chunk, entry.nioBuffer, entry.handle, buf, reqCapacity);
+
+            // 把entry仍会对象池复用
             entry.recycle();
 
             // allocations is not thread-safe which is fine as this is only called from the same thread all time.
@@ -462,9 +510,23 @@ final class PoolThreadCache {
             chunk.arena.freeChunk(chunk, handle, sizeClass, nioBuffer);
         }
 
+        /**
+         * 缓存节点
+         * @param <T>
+         */
         static final class Entry<T> {
+            /**
+             * 回收的Handler
+             */
             final Handle<Entry<?>> recyclerHandle;
+            /**
+             * 对应的Chunk
+             */
             PoolChunk<T> chunk;
+
+            /**
+             * 实际的数据存储
+             */
             ByteBuffer nioBuffer;
             long handle = -1;
 
