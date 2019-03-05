@@ -74,11 +74,23 @@ public final class ChannelOutboundBuffer {
     // Entry(flushedEntry) --> ... Entry(unflushedEntry) --> ... Entry(tailEntry)
     //
     // The Entry that is the first in the linked-list structure that was flushed
+    /**
+     * 第一个已经被flush过的Entry
+     */
     private Entry flushedEntry;
     // The Entry which is the first unflushed in the linked-list structure
+
+    /**
+     * 第一个为未被flush的Entry
+     */
     private Entry unflushedEntry;
     // The Entry which represents the tail of the buffer
+
+    /**
+     * Entry的尾部指针
+     */
     private Entry tailEntry;
+    // 已经标记为flush但是还未写出去的Entry数量
     // The number of flushed entries that are not written yet
     private int flushed;
 

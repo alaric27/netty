@@ -881,6 +881,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
         }
 
+        /**
+         * 具体的向SocketChannel发送数据的实现
+         * @param msg
+         * @param promise
+         */
         @Override
         public final void write(Object msg, ChannelPromise promise) {
             assertEventLoop();
@@ -899,6 +904,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
             int size;
             try {
+                //如果当前ByteBuf是堆内存，则转换为直接内存。主要逻辑为新建直接内存，然后拷贝当前堆内存字节
                 msg = filterOutboundMessage(msg);
                 size = pipeline.estimatorHandle().size(msg);
                 if (size < 0) {
@@ -909,10 +915,13 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 ReferenceCountUtil.release(msg);
                 return;
             }
-
+            //添加到outboundBuffer队列
             outboundBuffer.addMessage(msg, size, promise);
         }
 
+        /**
+         * 刷新数据，此时才会写入SocketChannel
+         */
         @Override
         public final void flush() {
             assertEventLoop();
@@ -922,6 +931,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 return;
             }
 
+            // todo ???
             outboundBuffer.addFlush();
             flush0();
         }
@@ -956,6 +966,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
 
             try {
+                // 向SocketChannel写入数据，在写入数据成功后由ChannelOutboundBuffer的remove()方法释放对应的ByteBuf
                 doWrite(outboundBuffer);
             } catch (Throwable t) {
                 if (t instanceof IOException && config().isAutoClose()) {

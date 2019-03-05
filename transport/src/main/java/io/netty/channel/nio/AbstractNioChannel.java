@@ -448,6 +448,12 @@ public abstract class AbstractNioChannel extends AbstractChannel {
      * Note that this method does not create an off-heap copy if the allocation / deallocation cost is too high,
      * but just returns the original {@link ByteBuf}..
      */
+
+    /**
+     * 返回一个堆外内存的ByteBuf，并且释放之前的ByteBuf
+     * @param buf
+     * @return
+     */
     protected final ByteBuf newDirectBuffer(ByteBuf buf) {
         final int readableBytes = buf.readableBytes();
         if (readableBytes == 0) {

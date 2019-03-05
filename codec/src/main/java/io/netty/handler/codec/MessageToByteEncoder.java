@@ -43,6 +43,11 @@ import io.netty.util.internal.TypeParameterMatcher;
  *     }
  * </pre>
  */
+
+/**
+ * 编码器的基类
+ * @param <I>
+ */
 public abstract class MessageToByteEncoder<I> extends ChannelOutboundHandlerAdapter {
 
     private final TypeParameterMatcher matcher;
@@ -104,8 +109,10 @@ public abstract class MessageToByteEncoder<I> extends ChannelOutboundHandlerAdap
                 I cast = (I) msg;
                 buf = allocateBuffer(ctx, cast, preferDirect);
                 try {
+                    // 自定义编码，会把cast的内容编码到buf中
                     encode(ctx, cast, buf);
                 } finally {
+                    // 释放之前的cast对象
                     ReferenceCountUtil.release(cast);
                 }
 
@@ -124,6 +131,7 @@ public abstract class MessageToByteEncoder<I> extends ChannelOutboundHandlerAdap
         } catch (Throwable e) {
             throw new EncoderException(e);
         } finally {
+            // 释放 buf
             if (buf != null) {
                 buf.release();
             }
