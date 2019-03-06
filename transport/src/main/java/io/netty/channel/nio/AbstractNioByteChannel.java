@@ -217,9 +217,11 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
                 return 0;
             }
 
+            // 调用具体的实现，向SocketChannel写入数据
             final int localFlushedAmount = doWriteBytes(buf);
             if (localFlushedAmount > 0) {
                 in.progress(localFlushedAmount);
+                // 如果当前buf数据发送完成，则移除该Entry,flushedEntry指向下一个
                 if (!buf.isReadable()) {
                     in.remove();
                 }

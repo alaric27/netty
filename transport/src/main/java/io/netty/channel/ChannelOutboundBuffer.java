@@ -136,6 +136,7 @@ public final class ChannelOutboundBuffer {
 
         // increment pending bytes after adding message to the unflushed arrays.
         // See https://github.com/netty/netty/issues/1619
+        // 设置通道的可写状态
         incrementPendingOutboundBytes(entry.pendingSize, false);
     }
 
@@ -159,6 +160,7 @@ public final class ChannelOutboundBuffer {
                 if (!entry.promise.setUncancellable()) {
                     // Was cancelled so make sure we free up memory and notify about the freed bytes
                     int pending = entry.cancel();
+                    // 更新写状态
                     decrementPendingOutboundBytes(pending, false, true);
                 }
                 entry = entry.next;
@@ -266,12 +268,14 @@ public final class ChannelOutboundBuffer {
 
         if (!e.cancelled) {
             // only release message, notify and decrement if it was not canceled before.
+            // 释放ByteBuf
             ReferenceCountUtil.safeRelease(msg);
             safeSuccess(promise);
             decrementPendingOutboundBytes(size, false, true);
         }
 
         // recycle the entry
+        // 回收Entry
         e.recycle();
 
         return true;
@@ -313,6 +317,7 @@ public final class ChannelOutboundBuffer {
         return true;
     }
 
+    // 移除当前Entry,flushedEntry指向下一个
     private void removeEntry(Entry e) {
         if (-- flushed == 0) {
             // processed everything

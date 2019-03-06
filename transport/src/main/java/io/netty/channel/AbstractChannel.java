@@ -931,7 +931,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 return;
             }
 
-            // todo ???
+            // 添加刷新标志并设置写状态
             outboundBuffer.addFlush();
             flush0();
         }
